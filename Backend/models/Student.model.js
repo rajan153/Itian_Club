@@ -58,6 +58,12 @@ const studentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    accountType: {
+      type: String,
+      required: true,
+      enum: ["Admin", "Student"],
+      default: Student,
+    },
   },
   { timestamps: true }
 );
