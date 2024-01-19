@@ -9,12 +9,10 @@ const studentSchema = new mongoose.Schema(
     },
     department: {
       type: String,
-      required: true,
       trim: true,
     },
     section: {
       type: String,
-      required: true,
       trim: true,
     },
     profilePicture: {
@@ -27,7 +25,6 @@ const studentSchema = new mongoose.Schema(
     },
     year: {
       type: Number,
-      required: true,
       trim: true,
     },
     contactNumber: {
@@ -62,7 +59,7 @@ const studentSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: ["Admin", "Student"],
-      default: Student,
+      default: "Student",
     },
   },
   { timestamps: true }
