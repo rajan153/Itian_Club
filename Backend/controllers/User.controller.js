@@ -5,12 +5,20 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mailSender = require("../utils/mailSender.utils");
 const otpTemplate = require("../mails/emailVerificationTemplate");
-
-// Send Otp
+const { passwordUpdated } = require("../mails/passwordUpdateTemplate");
 
 exports.sendOtp = async (req, res) => {
   try {
     const { email } = req.body;
+
+    // Email Validation
+    const allowedDomainRegex = /^[a-zA-Z0-9._-]+@gndec\.ac\.in$/;
+    if (!allowedDomainRegex.test(email)) {
+      return res.status(401).json({
+        success: false,
+        message: "Enter your college email",
+      });
+    }
 
     const checkUserPresent = await Student.findOne({ email });
     if (checkUserPresent) {
@@ -69,7 +77,7 @@ exports.signUp = async (req, res) => {
       urn,
       password,
       confirmPassword,
-      otp
+      otp,
     } = req.body;
 
     if (
@@ -88,6 +96,15 @@ exports.signUp = async (req, res) => {
       return res.status(403).json({
         success: false,
         message: "All fields are required",
+      });
+    }
+
+    // Email Validation
+    const allowedDomainRegex = /^[a-zA-Z0-9._-]+@gndec\.ac\.in$/;
+    if (!allowedDomainRegex.test(email)) {
+      return res.status(401).json({
+        success: false,
+        message: "Enter your college email",
       });
     }
 
@@ -149,6 +166,139 @@ exports.signUp = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "User cannot be registered. Please SignUp",
+    });
+  }
+};
+
+exports.login = async (req, res) => {
+  try {
+    // Get data from req.body
+    const { email, password } = req.body;
+
+    // validation data
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    // checks user exits or not
+    const user = await Student.findOne({ email });
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User is not register. Please SignUp",
+      });
+    }
+
+    // generate JWT, after matching password
+    if (await bcrypt.compare(password, user.password)) {
+      const token = jwt.sign(
+        {
+          email: user.email,
+          id: user._id,
+          accountType: user.accountType,
+        },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: "2h",
+        }
+      );
+      user.token = token;
+      user.password = undefined;
+
+      // create cookie and send response
+      const options = {
+        expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        httpOnly: true,
+      };
+      res.cookie("token", token, options).status(200).json({
+        success: true,
+        token,
+        user,
+        message: "Logged in successfully",
+      });
+    } else {
+      return res.status(401).json({
+        success: false,
+        message: "Password is incorrect",
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Login failed, Please try again",
+    });
+  }
+};
+
+exports.changePassword = async (req, res) => {
+  try {
+    // Get user data from req.user
+    const userDetails = await Student.findById(req.user.id);
+
+    // Get old password, new password, and confirm new password from req.body
+    const { oldPassword, newPassword, confirmNewPassword } = req.body;
+
+    // Validate old password
+    const isPasswordMatch = await bcrypt.compare(
+      oldPassword,
+      userDetails.password
+    );
+    if (!isPasswordMatch) {
+      // If old password does not match, return a 401 (Unauthorized) error
+      return res
+        .status(401)
+        .json({ success: false, message: "The password is incorrect" });
+    }
+
+    // Match new password and confirm new password
+    if (newPassword !== confirmNewPassword) {
+      // If new password and confirm new password do not match, return a 400 (Bad Request) error
+      return res.status(400).json({
+        success: false,
+        message: "The password and confirm password does not match",
+      });
+    }
+
+    // Update password
+    const encryptedPassword = await bcrypt.hash(newPassword, 10);
+    const updatedUserDetails = await Student.findByIdAndUpdate(
+      req.user.id,
+      { password: encryptedPassword },
+      { new: true }
+    );
+
+    // Send notification email
+    try {
+      const emailResponse = await mailSender(
+        updatedUserDetails.email,
+        "Password updated successfully",
+        passwordUpdated(
+          updatedUserDetails.email,
+          `Password updated successfully for ${updatedUserDetails.fullName}`
+        )
+      );
+    } catch (error) {
+      // If there's an error sending the email, log the error and return a 500 (Internal Server Error) error
+      return res.status(500).json({
+        success: false,
+        message: "Error occurred while sending email",
+        error: error.message,
+      });
+    }
+
+    // Return success response
+    return res
+      .status(200)
+      .json({ success: true, message: "Password updated successfully" });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error occurred while updating password",
+      error: error.message,
     });
   }
 };
