@@ -78,6 +78,7 @@ exports.signUp = async (req, res) => {
       password,
       confirmPassword,
       otp,
+      anotherEmail
     } = req.body;
 
     if (
@@ -91,7 +92,7 @@ exports.signUp = async (req, res) => {
       !urn ||
       !password ||
       !confirmPassword ||
-      !otp
+      !otp || !anotherEmail
     ) {
       return res.status(403).json({
         success: false,
@@ -149,6 +150,7 @@ exports.signUp = async (req, res) => {
       fullName,
       contactNumber,
       email,
+      anotherEmail,
       crn,
       urn,
       password: hashedPassword,
