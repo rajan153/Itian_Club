@@ -15,14 +15,16 @@ const eventSchema = new mongoose.Schema(
       required: true,
     },
     date: {
-      type: String,
-      required: true,
-    },
-    time: {
-      type: String,
+      type: Date,
       required: true,
     },
     studentRegister: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Student",
+      },
+    ],
+    studentPresent: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Student",
@@ -32,6 +34,28 @@ const eventSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "RatingAndReviews",
+      },
+    ],
+    tag: {
+      type: [String],
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["Draft", "Published"],
+    },
+    registrationOpen: Boolean,
+    registrationCloseDate: Boolean,
+    pastEvent: Boolean,
+    certificates: [
+      {
+        studentId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Student',
+        },
+        filePath: {
+          type: String,
+        },
       },
     ],
   },
