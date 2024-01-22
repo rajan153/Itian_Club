@@ -6,6 +6,7 @@ const studentSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      index: true,
     },
     department: {
       type: String,
@@ -22,10 +23,12 @@ const studentSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
+      unique: true,
     },
     anotherEmail: {
       type: String,
       required: true,
+      unique: true,
     },
     year: {
       type: Number,
@@ -35,16 +38,19 @@ const studentSchema = new mongoose.Schema(
       type: Number,
       required: true,
       trim: true,
+      unique: true,
     },
     crn: {
       type: Number,
       required: true,
       trim: true,
+      unique: true,
     },
     urn: {
       type: Number,
       required: true,
       trim: true,
+      unique: true,
     },
     token: {
       type: String,
