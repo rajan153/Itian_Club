@@ -41,7 +41,6 @@ exports.createEvent = async (req, res) => {
     const posterImagePath = req.files?.posterImage[0]?.path;
 
     const uploadImage = await uploadOnCloudinary(posterImagePath);
-    console.log(uploadImage);
 
     if (!uploadImage) {
       return res.status(404).json({
