@@ -1,6 +1,5 @@
 const express = require("express");
 const app = express();
-
 const userRoutes = require("./src/routes/User.routes");
 const adminRoutes = require("./src/routes/Event.routes");
 const cookieParser = require("cookie-parser");
@@ -22,6 +21,7 @@ app.listen(PORT, () => {
   console.log(`App is running on ${PORT}`);
 });
 
+// Database connection
 database.connect();
 
 // middleware
