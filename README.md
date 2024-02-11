@@ -1,3 +1,3 @@
 ## Itian_Club
 
-Full Stack Project
+Full Stack Project of itian club
